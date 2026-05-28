@@ -80,6 +80,16 @@ if (process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
   console.warn('[mail] GMAIL_USER / GMAIL_APP_PASSWORD not set — notifications will be logged only.');
 }
 
+// Daily cap — 10 early-access notification emails/day max
+let _tcDailySent = 0;
+let _tcDailyDate = '';
+const TC_DAILY_CAP = 10;
+function tcCapReached() {
+  const today = new Date().toISOString().slice(0, 10);
+  if (_tcDailyDate !== today) { _tcDailySent = 0; _tcDailyDate = today; }
+  return _tcDailySent >= TC_DAILY_CAP;
+}
+
 function sendEarlyAccessNotification({ feature, email, timestamp }) {
   const subject = `Early Access - Transaction Command v2 - ${feature}`;
   const body = `Early access request received for ${feature} from ${email} at ${timestamp}`;
@@ -87,6 +97,13 @@ function sendEarlyAccessNotification({ feature, email, timestamp }) {
     console.log('[mail:skipped]', subject, '—', body);
     return Promise.resolve({ skipped: true });
   }
+  if (tcCapReached()) {
+    console.log('[mail:cap] daily cap reached — early access notification skipped:', subject);
+    return Promise.resolve({ skipped: true, reason: 'daily_cap' });
+  }
+  const today = new Date().toISOString().slice(0, 10);
+  if (_tcDailyDate !== today) { _tcDailySent = 0; _tcDailyDate = today; }
+  _tcDailySent++;
   return mailTransporter.sendMail({
     from: process.env.GMAIL_USER,
     to: NOTIFY_TO,
