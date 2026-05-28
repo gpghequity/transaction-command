@@ -1,0 +1,18 @@
+node_modules/
+.env
+uploads/
+*.log
+.DS_Store
+Thumbs.db
+
+# Credential dump files — never commit
+*_vars.json
+sa_temp.json
+*credentials*.json
+*.key.json
+gorilla-real-estate-*.json
+.env.local
+.env.*.local
+deploy-make.js
+*.pem
+*.p12

@@ -1,0 +1,63 @@
+<section class="page-header">
+  <h1 class="h1">Document Check</h1>
+  <div class="sub">AI compliance review on any contract or disclosure</div>
+</section>
+
+<section class="doc-grid">
+  <!-- LEFT COLUMN — FORM -->
+  <div class="card doc-form-card">
+    <h2 class="h2">Upload Document</h2>
+
+    <form id="doc-form" enctype="multipart/form-data">
+      <label for="doc-address">Property Address</label>
+      <input type="text" id="doc-address" name="address" placeholder="123 Main St, City ST" />
+
+      <label for="doc-state">State</label>
+      <select id="doc-state" name="state">
+        <option value="Pennsylvania">Pennsylvania</option>
+        <option value="Ohio">Ohio</option>
+      </select>
+
+      <label for="doc-type">Document Type</label>
+      <select id="doc-type" name="doc_type" required>
+        <option value="Agreement of Sale (PA)">Agreement of Sale (PA)</option>
+        <option value="Listing Agreement (PA)">Listing Agreement (PA)</option>
+        <option value="Buyer Rep Agreement (PA)">Buyer Rep Agreement (PA)</option>
+        <option value="Seller Property Disclosure (PA)">Seller Property Disclosure (PA)</option>
+        <option value="Lead Paint Disclosure">Lead Paint Disclosure</option>
+        <option value="Ohio Agency Disclosure">Ohio Agency Disclosure</option>
+        <option value="Ohio Wholesale Contract">Ohio Wholesale Contract</option>
+      </select>
+
+      <label>Document File</label>
+      <label for="doc-file" class="drop-zone" id="doc-drop">
+        <div class="drop-title">Drag PDF or click to upload</div>
+        <div class="drop-sub">PDF only &middot; up to 25 MB</div>
+        <div class="drop-filename" id="doc-filename"></div>
+        <input type="file" id="doc-file" name="document" accept="application/pdf" hidden />
+      </label>
+
+      <button type="submit" class="btn btn-primary btn-block" id="doc-submit">Run Compliance Check</button>
+    </form>
+  </div>
+
+  <!-- RIGHT COLUMN — RESULT -->
+  <div class="card doc-result-card" id="doc-result">
+    <div class="doc-empty" id="doc-empty">
+      <div class="doc-empty-icon">◻</div>
+      <div>Upload a document to run compliance check</div>
+    </div>
+
+    <div class="doc-loading" id="doc-loading" hidden>
+      <div class="spinner"></div>
+      <div class="doc-loading-text">
+        <div>Running compliance analysis…</div>
+        <div class="sub">Claude is reading your document</div>
+      </div>
+    </div>
+
+    <div class="doc-report" id="doc-report" hidden>
+      <!-- Filled by document-check.js -->
+    </div>
+  </div>
+</section>

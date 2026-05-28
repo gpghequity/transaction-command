@@ -1,0 +1,159 @@
+<section class="page-header">
+  <h1 class="h1">Dashboard</h1>
+  <div class="sub">Live transactions and compliance snapshot</div>
+</section>
+
+<section class="stats-row">
+  <% stats.forEach(stat => { %>
+    <div class="stat-card">
+      <div class="stat-value"><%= stat.value %></div>
+      <div class="stat-label"><%= stat.label %></div>
+    </div>
+  <% }); %>
+</section>
+
+<section class="card table-card">
+  <div class="card-head">
+    <div>
+      <h2 class="h2">Active Transactions</h2>
+      <div class="sub">Click a row to view the full transaction file</div>
+    </div>
+    <button type="button" class="btn btn-primary" id="open-new-txn">+ NEW TRANSACTION</button>
+  </div>
+
+  <div class="table-wrap">
+    <table class="tc-table" id="txn-table">
+      <thead>
+        <tr>
+          <th>Address</th>
+          <th>Type</th>
+          <th>Agent</th>
+          <th>Price</th>
+          <th>Status</th>
+          <th>Compliance</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% transactions.forEach(t => { %>
+          <tr class="txn-row" data-address="<%= t.address %>">
+            <td><%= t.address %></td>
+            <td><%= t.type %></td>
+            <td><%= t.agent %></td>
+            <td><%= t.price %></td>
+            <td><%= t.status %></td>
+            <td>
+              <% if (t.compliance === 'PASS') { %>
+                <span class="badge badge-green">PASS</span>
+              <% } else if (t.compliance === 'CONDITIONAL') { %>
+                <span class="badge badge-orange">CONDITIONAL</span>
+              <% } else if (t.compliance === 'FAIL') { %>
+                <span class="badge badge-red">FAIL</span>
+              <% } else { %>
+                <span class="badge badge-gray"><%= t.compliance %></span>
+              <% } %>
+            </td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ─── TRANSACTION COMMAND v2 PROMO ──────────────────────────────────── -->
+<section class="v2-promo">
+  <div class="v2-promo-head">
+    <h2 class="v2-promo-title">Transaction Command v2 — Coming Q2 2026</h2>
+    <div class="v2-promo-subhead">The full transaction lifecycle, end to end.</div>
+    <p class="v2-promo-lead">Today, Transaction Command reviews your executed contracts. In Q2 2026, it takes over the entire lifecycle — from contract ingestion through e-signature routing, 7-year archival, and compliance filing.</p>
+  </div>
+
+  <div class="v2-grid">
+    <% v2Features.forEach((f, i) => { %>
+      <div class="v2-card" data-v2-index="<%= i %>" tabindex="0" role="button">
+        <div class="v2-icon"><%= f.icon %></div>
+        <div class="v2-card-name"><%= f.name %></div>
+        <span class="v2-pill">Coming Q2 2026</span>
+        <div class="v2-card-desc"><%= f.short %></div>
+        <button type="button" class="v2-preview-btn">Preview Feature →</button>
+      </div>
+    <% }); %>
+  </div>
+
+  <div class="v2-banner">
+    <div class="v2-banner-text">
+      <h3 class="v2-banner-title">Be first to try Transaction Command v2</h3>
+      <div class="v2-banner-sub">Early access launches Q2 2026. Reserve your spot.</div>
+    </div>
+    <form id="v2-banner-form" class="v2-banner-form" novalidate>
+      <input type="email" name="email" placeholder="your@email.com" required />
+      <button type="submit" class="btn v2-banner-btn">Notify Me</button>
+      <div class="v2-banner-small">No spam. One launch notification. Unsubscribe anytime.</div>
+      <div class="v2-banner-confirm" hidden></div>
+    </form>
+  </div>
+</section>
+
+<!-- V2 FEATURE MODAL -->
+<div class="modal v2-modal" id="v2-feature-modal" aria-hidden="true">
+  <div class="modal-backdrop" data-close-v2></div>
+  <div class="modal-card v2-modal-card">
+    <div class="modal-head">
+      <h2 class="h2" id="v2-modal-title">Feature</h2>
+      <button type="button" class="modal-close" data-close-v2 aria-label="Close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <span class="v2-pill v2-pill-lg">Launching Q2 2026</span>
+      <p id="v2-modal-body" class="v2-modal-body">…</p>
+      <form id="v2-modal-form" class="v2-modal-form" novalidate>
+        <label for="v2-modal-email">Notify me when live</label>
+        <input type="email" id="v2-modal-email" name="email" placeholder="your@email.com" required />
+        <input type="hidden" name="feature" id="v2-modal-feature" />
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" data-close-v2>Close</button>
+          <button type="submit" class="btn v2-modal-submit">Notify Me When Live</button>
+        </div>
+        <div class="v2-modal-confirm" hidden></div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- v2 feature data for JS (avoids re-fetch) -->
+<script id="v2-features-data" type="application/json"><%- JSON.stringify(v2Features) %></script>
+
+<!-- NEW TRANSACTION MODAL -->
+<div class="modal" id="new-txn-modal" aria-hidden="true">
+  <div class="modal-backdrop" data-close-modal></div>
+  <div class="modal-card">
+    <div class="modal-head">
+      <h2 class="h2">New Transaction</h2>
+      <button type="button" class="modal-close" data-close-modal aria-label="Close">&times;</button>
+    </div>
+    <form id="new-txn-form" class="modal-body">
+      <label for="txn-address">Property Address</label>
+      <input type="text" id="txn-address" name="address" required placeholder="123 Main St, City ST" />
+
+      <label for="txn-type">Type</label>
+      <select id="txn-type" name="type" required>
+        <option value="AOS">Agreement of Sale (AOS)</option>
+        <option value="Listing">Listing</option>
+        <option value="Buyer Rep">Buyer Rep</option>
+        <option value="Wholesale">Wholesale</option>
+      </select>
+
+      <label for="txn-agent">Agent</label>
+      <input type="text" id="txn-agent" name="agent" required placeholder="Agent name" />
+
+      <label for="txn-price">Price</label>
+      <input type="text" id="txn-price" name="price" required placeholder="$0" />
+
+      <label for="txn-close">Target Closing Date</label>
+      <input type="date" id="txn-close" name="closing" />
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" data-close-modal>Cancel</button>
+        <button type="submit" class="btn btn-primary">Add Transaction</button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,39 @@
+<section class="page-header">
+  <h1 class="h1">Admin</h1>
+  <div class="sub">Internal operations — Transaction Command</div>
+</section>
+
+<section class="card table-card">
+  <div class="card-head">
+    <div>
+      <h2 class="h2">Early Access Requests</h2>
+      <div class="sub">Captured email signups for Transaction Command v2 preview features (in-memory — resets on app restart)</div>
+    </div>
+    <div class="sub"><strong style="color: var(--gold);"><%= earlyAccess.length %></strong> total</div>
+  </div>
+
+  <% if (!earlyAccess.length) { %>
+    <div class="admin-empty">No early access requests yet.</div>
+  <% } else { %>
+    <div class="table-wrap">
+      <table class="tc-table">
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>Email</th>
+            <th>Feature</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% earlyAccess.forEach(r => { %>
+            <tr>
+              <td><%= r.timestamp %></td>
+              <td><%= r.email %></td>
+              <td><%= r.feature %></td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>
