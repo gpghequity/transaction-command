@@ -83,7 +83,7 @@ if (process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
 // Daily cap — 10 early-access notification emails/day max
 let _tcDailySent = 0;
 let _tcDailyDate = '';
-const TC_DAILY_CAP = 10;
+const TC_DAILY_CAP = 5;
 function tcCapReached() {
   const today = new Date().toISOString().slice(0, 10);
   if (_tcDailyDate !== today) { _tcDailySent = 0; _tcDailyDate = today; }
