@@ -1,0 +1,28 @@
+﻿{
+    "name":  "transaction-command",
+    "version":  "1.0.0",
+    "private":  true,
+    "description":  "Transaction Command â€” AI-Powered Transaction Compliance (Projects with a Purpose LLC)",
+    "main":  "index.js",
+    "scripts":  {
+                    "start":  "node index.js",
+                    "dev":  "node index.js",
+                    "test":  "vitest run"
+                },
+    "dependencies":  {
+                         "dotenv":  "^16.4.5",
+                         "ejs":  "^3.1.10",
+                         "express":  "^4.21.2",
+                         "express-rate-limit":  "^8.5.2",
+                         "express-session":  "^1.18.1",
+                         "multer":  "^1.4.5-lts.1",
+                         "nodemailer":  "^8.0.5"
+                     },
+    "engines":  {
+                    "node":  "\u003e=20"
+                },
+    "devDependencies":  {
+                            "supertest":  "^7.2.2",
+                            "vitest":  "^4.1.7"
+                        }
+}
