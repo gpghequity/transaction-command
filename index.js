@@ -8,6 +8,70 @@ const nodemailer = require('nodemailer');
 const path = require('path');
 const fs = require('fs');
 const rateLimit = require('express-rate-limit');
+const { google } = require('googleapis');
+
+// ── Google Sheets client ──────────────────────────────────────────────────────
+let _sheetsClient = null;
+function getSheetsClient() {
+  if (_sheetsClient) return _sheetsClient;
+  const raw = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
+  if (!raw) return null;
+  try {
+    const creds = JSON.parse(raw);
+    const auth = new google.auth.JWT({ email: creds.client_email, key: creds.private_key, scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'] });
+    _sheetsClient = google.sheets({ version: 'v4', auth });
+    return _sheetsClient;
+  } catch { return null; }
+}
+
+async function readSheetTab(tab, cols = 'A:ZZ') {
+  const client = getSheetsClient();
+  const sheetId = process.env.GOOGLE_SHEETS_ID;
+  if (!client || !sheetId) return [];
+  try {
+    const res = await client.spreadsheets.values.get({ spreadsheetId: sheetId, range: `'${tab}'!${cols}` });
+    const rows = res.data.values || [];
+    if (rows.length < 2) return [];
+    const headers = rows[0].map(h => String(h).toLowerCase().replace(/\s+/g, '_'));
+    return rows.slice(1).map(row => {
+      const obj = {};
+      headers.forEach((h, i) => { obj[h] = row[i] || ''; });
+      return obj;
+    });
+  } catch { return []; }
+}
+
+async function getLiveTransactions() {
+  const [pipeline, acceptances] = await Promise.all([
+    readSheetTab('Closing Pipeline'),
+    readSheetTab('Offer Acceptances')
+  ]);
+  const deals = [];
+  for (const row of pipeline) {
+    if (!row.property_address && !row.address) continue;
+    deals.push({
+      address: row.property_address || row.address || 'Unknown',
+      type: row.deal_type || row.type || 'Transaction',
+      agent: row.agent_name || row.submitter_name || row.assigned_to || 'Team',
+      price: row.offer_amount || row.asking_price ? `$${Number(String(row.offer_amount || row.asking_price || '0').replace(/[^0-9]/g, '')).toLocaleString()}` : 'TBD',
+      status: row.stage || row.status || 'Active',
+      compliance: 'REVIEW'
+    });
+  }
+  for (const row of acceptances) {
+    if (!row.property_address) continue;
+    if (deals.some(d => d.address === row.property_address)) continue;
+    deals.push({
+      address: row.property_address,
+      type: 'Accepted Offer',
+      agent: row.submitter_name || row.agent || 'Team',
+      price: row.offer_amount ? `$${Number(String(row.offer_amount).replace(/[^0-9]/g, '')).toLocaleString()}` : 'TBD',
+      status: 'Accepted',
+      compliance: 'PENDING'
+    });
+  }
+  return deals;
+}
 const generalLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 100, standardHeaders: true, legacyHeaders: false });
 
 // ─── VERSION + DEPLOY TIMESTAMP ───────────────────────────────────────────
@@ -149,20 +213,18 @@ app.get('/logout', (req, res) => {
   req.session.destroy(() => res.redirect('/login'));
 });
 
-// Dashboard
-app.get(['/', '/dashboard'], requireAuth, (req, res) => {
-  const transactions = [
-    { address: '215 Pine Street, Kingston PA',    type: 'AOS',       agent: 'Naire Crayton',  price: '$142,500', status: 'Closing: May 15', compliance: 'CONDITIONAL' },
-    { address: '88 Willow Ave, Wilkes-Barre PA',  type: 'Listing',   agent: 'Ryan Franco',    price: '$89,000',  status: 'Active',          compliance: 'PASS' },
-    { address: '2200 Industrial Dr, Columbus OH', type: 'Wholesale', agent: 'Alex Torres',    price: '$325,000', status: 'Closing: May 3',  compliance: 'FAIL' },
-    { address: '47 Maple Lane, Scranton PA',      type: 'Buyer Rep', agent: 'Drew Mitchell',  price: '$215,000', status: 'Active',          compliance: 'PASS' }
-  ];
+// Dashboard — live data from Google Sheets
+app.get(['/', '/dashboard'], requireAuth, async (req, res) => {
+  let transactions = [];
+  try {
+    transactions = await getLiveTransactions();
+  } catch { /* fall through — show empty state */ }
 
   const stats = [
-    { label: 'Active Transactions',   value: '4' },
-    { label: 'Pending Review',        value: '1' },
-    { label: 'Docs Checked This Month', value: '23' },
-    { label: 'Compliance Score',      value: '94%' }
+    { label: 'Active Transactions', value: String(transactions.length) },
+    { label: 'Pending Review',      value: String(transactions.filter(t => t.compliance === 'REVIEW' || t.compliance === 'PENDING').length) },
+    { label: 'Closed This Quarter', value: String(transactions.filter(t => (t.status || '').toLowerCase().includes('closed')).length) },
+    { label: 'Data Source',         value: process.env.GOOGLE_SHEETS_ID ? 'Live (Sheets)' : 'No Sheet ID' }
   ];
 
   const v2Features = [
